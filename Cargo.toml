@@ -8,6 +8,10 @@ readme = "README.md"
 description = "Rust crate to fix malformed JSON outputs from LLMs"
 keywords = ["LLM", "json-fixer", "fix"]
 
+[lib]
+name = "llm_json"
+crate-type = ["cdylib", "rlib"]
+
 [[bin]]
 name = "llm_json"
 path = "src/bin/main.rs"
@@ -16,6 +20,7 @@ path = "src/bin/main.rs"
 serde_json = "1.0"
 thiserror = "1.0"
 clap = { version = "4.0", features = ["derive"] }
+libc = "0.2.175"
 
 [dev-dependencies]
 tempfile = "3.0"

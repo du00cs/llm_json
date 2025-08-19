@@ -30,10 +30,12 @@
 //! let value = loads(broken_json, &Default::default()).unwrap();
 //! ```
 
+use std::ffi::{CStr, CString};
 use serde_json::Value;
 use std::fs;
 use std::io::{self, Read};
 use std::path::Path;
+use libc::c_char;
 use thiserror::Error;
 
 /// Errors that can occur during JSON repair
@@ -731,6 +733,23 @@ pub fn load<R: Read>(mut reader: R, options: &RepairOptions) -> Result<Value, Js
     let mut content = String::new();
     reader.read_to_string(&mut content)?;
     loads(&content, options)
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn free_string(s: *mut c_char) {
+    if !s.is_null() {
+        unsafe {
+            let _ = CString::from_raw(s); // Frees the string
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn repair(json_str: *const c_char) -> *mut c_char {
+    let json_str = unsafe { CStr::from_ptr(json_str) }.to_str().unwrap();
+    let options = RepairOptions::default();
+    let result = repair_json(json_str, &options).unwrap();
+    CString::new(result).unwrap().into_raw()
 }
 
 #[cfg(test)]
